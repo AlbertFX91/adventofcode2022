@@ -1,7 +1,7 @@
 import { binaryInsert } from "../util/binaryInsert";
 import { readDayInput } from "../util/readDayInput";
 
-// O(nlog(m))
+// O(n)
 export default async function caloriesCounter () {
   const s = await readDayInput('day01');
   const lines = s.split('\n');
@@ -9,10 +9,10 @@ export default async function caloriesCounter () {
   const maxs = [0, 0, 0];
   let acc = 0;
   
-  // O(nlog(m))
+  // O(n)
   for (const s of lines) { // O(n)
     if (!s)  {
-      // O(log(m))
+      // O(k)
       binaryInsert(maxs, acc, true, (a, b) => b - a);
       maxs.pop();
       acc = 0;
