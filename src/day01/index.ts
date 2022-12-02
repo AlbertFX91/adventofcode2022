@@ -1,8 +1,8 @@
 import { binaryInsert } from "../util/binaryInsert";
-import { readDayInput } from "../util/readDayInput"
+import { readDayInput } from "../util/readDayInput";
 
 // O(nlog(m))
-export const CaloriesCounter = async () => {
+export default async function caloriesCounter () {
   const s = await readDayInput('day01');
   const lines = s.split('\n');
 
@@ -26,4 +26,3 @@ export const CaloriesCounter = async () => {
     maxSum: maxs.reduce((a, b) => a + b, 0)
   };
 }
-
