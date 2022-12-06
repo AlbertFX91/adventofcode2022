@@ -4,10 +4,19 @@ type State = {
   [col: number]: string[]
 }
 
+/**
+ * n: num lines
+ * c: num cols
+ * m: total num of crates
+ * O(nm) worst scenario
+ * O(n) regular
+ * @returns 
+ */
 export default async function supplyStacks() {
   const s = await readDayInput('day05');
   const lines = s.split('\n');
 
+  // Worst scenario: O(mc)
   const {
     movementsIndex,
     state
@@ -17,18 +26,18 @@ export default async function supplyStacks() {
   const stateSol2: State = JSON.parse(JSON.stringify(state))
 
   // Parse movements
-  for (let i = movementsIndex; i < lines.length; i++) {
+  for (let i = movementsIndex; i < lines.length; i++) { // O(n)
     // Parse line O(k)
     const {
       size,
       from,
       to
-    } = parseMovement(lines[i]);
+    } = parseMovement(lines[i]); // O(k)
 
     // Sol 1
-    move(state, size, from, to);
+    move(state, size, from, to); // O(m)
     // Sol 2
-    move(stateSol2, size, from, to, true);
+    move(stateSol2, size, from, to, true); // O(k)
   }
 
   // Create output
@@ -40,7 +49,7 @@ export default async function supplyStacks() {
     sol2,
   }
 }
-
+// O(mc)
 function parseInitialState(lines: string[]): {
   movementsIndex: number,
   state: State
@@ -54,7 +63,7 @@ function parseInitialState(lines: string[]): {
       iMovements = i + 1;
       break; 
     }
-    // O(m)
+    // O(c)
     let matches = [...line.matchAll(/\[([a-zA-z]+)\]/g)];
     matches.forEach((match) => {
         if (match.index === undefined) return;
@@ -91,7 +100,16 @@ function parseMovement(line: string): {
     to,
   }
 }
-
+/**
+ * m: total num of crates
+ * s: size, size < m
+ * O(s) -> worst scenario O(m)
+ * @param state 
+ * @param size 
+ * @param from 
+ * @param to 
+ * @param isCrateMover9001 
+ */
 function move(state: State, size: number, from: number, to: number, isCrateMover9001: boolean = false) {
   // Get stacks and mutate 'from' column
   const stacks = state[from].splice(state[from].length - size);
