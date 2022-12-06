@@ -36,13 +36,22 @@ export async function sumPriorities02() {
   let acc = 0;
   const groupSize = 3;
 
-  // O(n) 
-  for (let i = 0; i < lines.length; i += groupSize) { 
+  /**
+   * n: num lines
+   * m: num chars in a line
+   * g: group size = 3
+   * 
+   * O = O(n/g * (O(g) + O(gm)) => O(nm)
+   */
+  for (let i = 0; i < lines.length; i += groupSize) { // O(n/g) => O(n)
 
-    const s = Array.from({length: groupSize}, (_, j) => i + j) // [i, i+1, i+2]
+    // O(mg)
+    const s = Array.from({length: groupSize}, (_, j) => i + j) // O(g) => O(k) [i, i+1, i+2]
       .reduce((set, j) => j % groupSize === 0 ? 
-        new Set(lines[j].split('')) : // Initialize set with all the characters of the first line of the group
-        new Set(lines[j].split('').filter((c) => set.has(c))), // New set with the characters contained in the previous set
+        // Initialize set with all the characters of the first line of the group
+        new Set(lines[j].split('')) : // O(m)
+        // New set with the characters contained in the previous set
+        new Set(lines[j].split('').filter((c) => set.has(c))),  // O(m)
       new Set());
     // Get first character
     const char = s.values().next().value;
