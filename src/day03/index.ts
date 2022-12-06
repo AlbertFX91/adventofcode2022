@@ -1,4 +1,3 @@
-import { binaryInsert } from "../util/binaryInsert";
 import { readDayInput } from "../util/readDayInput";
 
 // O(nm)
