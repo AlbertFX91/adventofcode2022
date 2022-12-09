@@ -4,6 +4,7 @@ import {sumPriorities01, sumPriorities02} from "./day03";
 import { campCleanup } from "./day04";
 import supplyStacks from "./day05";
 import tuningTrouble from "./day06";
+import noSpaceOnDevice from "./day07";
 import { timer } from "./util/timer";
 
 await timer('day01', caloriesCounter);
@@ -20,3 +21,5 @@ await timer('day04', campCleanup);
 await timer('day05', supplyStacks);
 
 await timer('day06', tuningTrouble);
+
+await timer('day07', noSpaceOnDevice);
