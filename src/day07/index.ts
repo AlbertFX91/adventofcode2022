@@ -1,7 +1,7 @@
 import { readDayInput } from "../util/readDayInput";
 
 type Node<T> = {
-  id: string,
+  name: string,
   parent?: Node<T>,
   children: {
     [id: string]: Node<T>
@@ -24,33 +24,41 @@ type FileSystem = Graph<Resource>;
 
 export default async function noSpaceOnDevice() {
   const input = await readDayInput('day07');
+  // Build graph
   const fs = buildFileSystem(input);
-
+  // Get size of each directory
   const directorySizes = getDirectorySizes(fs);
 
-  const sol1 = Object.values(directorySizes).filter((size) =>  size <= 100000).reduce((a,b) => a+b, 0);
+  // Sort by size and sum all directories less than threshold
+  const threshold = 100000;
+  const sol1 = Object.values(directorySizes).filter((size) =>  size <= threshold).reduce((a,b) => a+b, 0);
 
+
+  // Solution 2: smallest directory that, if deleted, would free up enought space to run the update
   const availableDisk = 70000000;
-  const unusedSpaceRequired = 30000000;
-
-  // TODO: Sizes could be cached in the file system
-  const rootSize = directorySizes['undefined$/'];
+  const spaceForUpdate = 30000000;
+  // Get the total size used
+  const rootSize = directorySizes['/'];
+  // Sort directories by size order by desc
   const keys = Object.keys(directorySizes).sort((a, b) => directorySizes[b] - directorySizes[a]);
 
   let sol2 = undefined;
-  const unusedSize = availableDisk - rootSize;
-  const unusedSizeRequired = unusedSpaceRequired - unusedSize;
+
+  // Current available space
+  const remainingSpace = availableDisk - rootSize;
+  // Space that we need to delete for running the update
+  const spaceUntilUpdate = spaceForUpdate - remainingSpace;
   for (const key of keys) {
     const size = directorySizes[key];
-    if (size > unusedSizeRequired) {
+    if (size > spaceUntilUpdate) {
       sol2 = size;
     } else {
       break;
     }
   }
-  
+
   return {
-    sol1, // 1792222
+    sol1, // 1792222 
     sol2 // 1112963
   }
 
@@ -71,16 +79,24 @@ function _getDirectorySizes(node: Node<Resource>, directorySizes: {[id: string]:
     const sizes = Object.values(node.children).map((node) => _getDirectorySizes(node, directorySizes))
     const size = sizes.reduce((acc, curr) => acc + curr, 0);
     // TODO: This cannot be used as ID. It's not collision proved. The information should be store inside the graph or in a new data structure
-    directorySizes[`${node?.parent?.id}$${node.id}`] = size;
+    directorySizes[getAbsolutePath(node) ?? '/'] = size;
     return size;
   }
 }
 
-// TODO: Use regex, remove ifs using dicts/switch
+function getAbsolutePath<T>(node: Node<T>): string {
+  if (!node.parent) {
+    return '/';
+  } else {
+    const parentPath = getAbsolutePath(node.parent);
+    return `${parentPath === '/' ? '' : parentPath}/${node.name}`
+  }
+}
+
 function buildFileSystem(input: string): FileSystem {
   const graph: FileSystem = {
     root: {
-      id: '/',
+      name: '/',
       data: {
         type: 'directory',
       },
@@ -89,62 +105,52 @@ function buildFileSystem(input: string): FileSystem {
   };
   const lines = input.split('\n');
   let pointer: Node<Resource> = graph.root;
-  let i = 0;
-  while (i < lines.length) {
-    let line = lines[i];
+  for (const line of lines) {
     // Instruction
-    if (line[0] === '$') {
+    if (line.startsWith('$ cd')) {
       const [_, inst, arg] = line.split(' ');
-      // If CD
-      if (inst === 'cd') {
-        // Root
-        if (arg === '/') {
-          pointer = graph.root;
-        // Go back
-        } else if (arg === '..') {
-          if (!pointer.parent) {
-            throw new Error(`Cannot go back from ${pointer.id}`)
-          }
-          pointer = pointer.parent;
-        // Go to child
-        } else {  
-          if (pointer.children[arg] === undefined) {
-            throw new Error(`Cannot go into folder ${arg} from ${pointer.id}`);
-          }
-          pointer = pointer.children[arg];
+      // Root
+      if (arg === '/') {
+        pointer = graph.root;
+      // Go back
+      } else if (arg === '..') {
+        if (!pointer.parent) {
+          throw new Error(`Cannot go back from ${pointer.name}`)
         }
-        i++;
+        pointer = pointer.parent;
+      // Go to child
+      } else {  
+        if (pointer.children[arg] === undefined) {
+          throw new Error(`Cannot go into directory ${arg} from ${pointer.name}`);
+        }
+        pointer = pointer.children[arg];
       }
-      else if (inst === 'ls') {
-        // Foreach until next instruction
-        i++;
-        line = lines[i];
-        while (i < lines.length && line[0] != '$') {
-          const [pref, name] = line.split(' ');
-          if (pref === 'dir') {
-            pointer.children[name] = {
-              id: name,
-              parent: pointer,
-              children: {},
-              data: {
-                type: 'directory',
-              }
-            }
+    }
+    else if (line.startsWith('$ ls')) {
+      continue;
+    }
+    else {
+      const [pref, name] = line.split(' ');
+      if (pref === 'dir') {
+        pointer.children[name] = {
+          name: name,
+          parent: pointer,
+          children: {},
+          data: {
+            type: 'directory',
           }
-          else {
-            pointer.children[name] = {
-              id: name,
-              parent: pointer,
-              children: {},
-              data: {
-                type: 'file',
-                size: parseInt(pref)
-              }
-            }
-          }
-          i++;
-          line = lines[i];
+        }
       }
+      else {
+        pointer.children[name] = {
+          name: name,
+          parent: pointer,
+          children: {},
+          data: {
+            type: 'file',
+            size: parseInt(pref)
+          }
+        }
       }
     }
   }
