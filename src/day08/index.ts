@@ -67,6 +67,28 @@ export default async function treetopTreeHouse() {
 
   /**
    * O(n * n * (nlogn+n)) => O(n^3*log(n)) 💣💥
+   * 
+   * There is a better way to solve this without creating a matrix and neither a tranposed one.
+   * The solution is to count the trees visible, and store it in a matrix.
+   * We start with a matrix nxn filled by 0. 
+   * If from the top/bottom/left/right a tree is visible, the value will be 1.
+   * 
+   * Pseudocode:
+   * const visibleTrees = Array(h).fill(0).map(() => Array(w).fill(0));
+   * // From the left
+   * for (let row = 0; row < height; row++) {
+   *  let maxValue = lines[row][0];
+   *  for (let col = 0; col < width; col++) {
+   *   if (lines[row][col] >= maxValue) {
+   *    visibleTrees[row][col] = 1;
+   *    maxValue = lines[row][col];
+   *   }
+   *  }
+   * }
+   * 
+   * // The same for all the directions and them, we count the number of '1' 
+   * This will results in O(n^2)
+   *  
    */
   for (let row = 0; row < h; row++) { // O(n)
     for (let col = 0; col < w; col++) { // O(n)
